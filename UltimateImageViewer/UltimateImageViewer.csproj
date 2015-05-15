@@ -46,6 +46,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DialogWindow.cs" />
     <Compile Include="GUIHelper.cs" />
     <Compile Include="ImageBookmark.cs" />
     <Compile Include="ImageWindow.cs" />

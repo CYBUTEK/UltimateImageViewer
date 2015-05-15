@@ -35,7 +35,23 @@ namespace UltimateImageViewer
         private ImageBookmark imageBookmark;
         private bool isWindowResizing;
 
-        public void SetImage(string url)
+        public static void Create(string url)
+        {
+            if (UltimateImageViewer.Instance != null)
+            {
+                UltimateImageViewer.Instance.gameObject.AddComponent<ImageWindow>().Init(url);
+            }
+        }
+
+        public static void Create(ImageBookmark bookmark)
+        {
+            if (UltimateImageViewer.Instance != null)
+            {
+                UltimateImageViewer.Instance.gameObject.AddComponent<ImageWindow>().Init(bookmark);
+            }
+        }
+
+        public void Init(string url)
         {
             if (string.IsNullOrEmpty(url))
             {
@@ -48,7 +64,7 @@ namespace UltimateImageViewer
             StartCoroutine(LoadImage());
         }
 
-        public void SetImage(ImageBookmark bookmark)
+        public void Init(ImageBookmark bookmark)
         {
             if (bookmark == null)
             {
@@ -64,7 +80,6 @@ namespace UltimateImageViewer
         protected override void OnGUI()
         {
             base.OnGUI();
-
             ResizeWindow();
         }
 
@@ -80,7 +95,11 @@ namespace UltimateImageViewer
                 if (hasDisplayedImage == false)
                 {
                     hasDisplayedImage = true;
-                    GUILayout.Box(image, GUIStyle.none, new[] { GUILayout.Width(Screen.width * SCREEN_MAX_WIDTH), GUILayout.Height(Screen.height * SCREEN_MAX_HEIGHT) });
+                    GUILayout.Box(image, GUIStyle.none, new[]
+                    {
+                        GUILayout.Width(Mathf.Clamp(image.width, 0.0f, Screen.width * SCREEN_MAX_WIDTH)),
+                        GUILayout.Height(Mathf.Clamp(image.height, 0.0f, Screen.height * SCREEN_MAX_HEIGHT))
+                    });
                 }
                 else
                 {
@@ -91,10 +110,7 @@ namespace UltimateImageViewer
                     imageBookmark.Name = GUILayout.TextField(imageBookmark.Name, new[] { GUILayout.Width(WIDTH_NAME) });
                     if (GUILayout.Button("BOOKMARK", new[] { GUILayout.Width(WIDTH_BOOKMARK) }))
                     {
-                        if (UltimateImageViewer.Bookmarks.Contains(imageBookmark) == false)
-                        {
-                            UltimateImageViewer.Bookmarks.Add(imageBookmark);
-                        }
+                        UltimateImageViewer.AddBookmark(imageBookmark);
                     }
                     CloseButton();
                 });

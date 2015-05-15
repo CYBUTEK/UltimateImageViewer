@@ -51,7 +51,7 @@ namespace UltimateImageViewer
 
                 if (GUILayout.Button("LOAD", new[] { GUILayout.Width(WIDTH_LOAD) }) && string.IsNullOrEmpty(url) == false)
                 {
-                    UltimateImageViewer.CreateImageWindow(url);
+                    ImageWindow.Create(url);
                 }
             });
 
@@ -73,11 +73,11 @@ namespace UltimateImageViewer
                 GUILayout.Label(bookmark.Name, new[] { GUILayout.Width(WIDTH_URL) });
                 if (GUILayout.Button("CLR", new[] { GUILayout.Width(WIDTH_CLR) }))
                 {
-                    UltimateImageViewer.Bookmarks.Remove(bookmark);
+                    UltimateImageViewer.RemoveBookmark(bookmark);
                 }
                 if (GUILayout.Button("LOAD", new[] { GUILayout.Width(WIDTH_LOAD) }))
                 {
-                    UltimateImageViewer.CreateImageWindow(bookmark);
+                    ImageWindow.Create(bookmark);
                 }
             });
         }

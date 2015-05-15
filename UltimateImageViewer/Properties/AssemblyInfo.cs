@@ -25,7 +25,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyCopyright("Copyright © CYBUTEK 2015")]
 [assembly: ComVisible(false)]
 [assembly: Guid("ba52aec7-dbdc-43e8-91c9-8a425496e341")]
-[assembly: AssemblyVersion("0.1.0.0")]
+[assembly: AssemblyVersion("1.0.0.0")]
 
 public static class AssemblyInfo
 {

@@ -28,7 +28,6 @@ namespace UltimateImageViewer
         public static SelectionWindow SelectionWindow;
 
         private static List<ImageBookmark> bookmarks = new List<ImageBookmark>();
-        private static UltimateImageViewer instance;
 
         public static List<ImageBookmark> Bookmarks
         {
@@ -38,6 +37,8 @@ namespace UltimateImageViewer
             }
         }
 
+        public static UltimateImageViewer Instance { get; private set; }
+
         private static bool IsToggleKeyComboDown
         {
             get
@@ -46,34 +47,30 @@ namespace UltimateImageViewer
             }
         }
 
+        public static void AddBookmark(ImageBookmark bookmark)
+        {
+            if (bookmarks.Contains(bookmark))
+            {
+                DialogWindow.Create("Could not add bookmark", "Bookmark \"" + bookmark.Name + "\" already exists!");
+                return;
+            }
+
+            bookmarks.Add(bookmark);
+            SaveBookmarks();
+        }
+
         public static void CloseAllImageWindows()
         {
-            if (instance == null)
+            if (Instance == null)
             {
                 return;
             }
 
-            ImageWindow[] imageWindows = instance.GetComponents<ImageWindow>();
+            ImageWindow[] imageWindows = Instance.GetComponents<ImageWindow>();
             int windowCount = imageWindows.Length;
             for (int i = 0; i < windowCount; ++i)
             {
                 Destroy(imageWindows[i]);
-            }
-        }
-
-        public static void CreateImageWindow(string url)
-        {
-            if (instance != null)
-            {
-                instance.gameObject.AddComponent<ImageWindow>().SetImage(url);
-            }
-        }
-
-        public static void CreateImageWindow(ImageBookmark bookmark)
-        {
-            if (instance != null)
-            {
-                instance.gameObject.AddComponent<ImageWindow>().SetImage(bookmark);
             }
         }
 
@@ -94,32 +91,45 @@ namespace UltimateImageViewer
                 return;
             }
 
-            using (Stream stream = File.Open(filePath, FileMode.Open))
+            using (Stream stream = File.Open(filePath, FileMode.Open, FileAccess.Read))
             {
-                if (stream.CanRead == false)
+                try
                 {
-                    return;
+                    XmlSerializer xmlSerialiser = new XmlSerializer(typeof(List<ImageBookmark>));
+                    bookmarks = xmlSerialiser.Deserialize(stream) as List<ImageBookmark>;
                 }
-
-                XmlSerializer xmlSerialiser = new XmlSerializer(typeof(List<ImageBookmark>));
-                bookmarks = xmlSerialiser.Deserialize(stream) as List<ImageBookmark>;
+                catch
+                {
+                    DialogWindow.CreateYesNo("Ultimate Image Viewer - Error", "Ultimage Image Viewer encountered an error when trying to load the bookmarks file. File may be corrupt!\n\nWould you like to delete the bookmarks file and start fresh?", () =>
+                    {
+                        File.Delete(filePath);
+                        DialogWindow.Create("Ultimate Image Viewer", "The \"bookmarks.xml\" file has been deleted.");
+                    });
+                }
                 stream.Close();
             }
         }
 
+        public static void RemoveBookmark(ImageBookmark bookmark)
+        {
+            bookmarks.Remove(bookmark);
+            SaveBookmarks();
+        }
+
         public static void SaveBookmarks()
         {
-            using (Stream stream = File.Open(Path.Combine(AssemblyInfo.Directory, "Bookmarks.xml"), FileMode.OpenOrCreate))
-            {
-                if (stream.CanWrite == false)
-                {
-                    return;
-                }
+            string filePath = Path.Combine(AssemblyInfo.Directory, "Bookmarks.xml");
 
+            File.Delete(filePath);
+
+            using (Stream stream = File.Open(Path.Combine(AssemblyInfo.Directory, "Bookmarks.xml"), FileMode.OpenOrCreate, FileAccess.Write))
+            {
                 XmlSerializer xmlSerialiser = new XmlSerializer(typeof(List<ImageBookmark>));
                 xmlSerialiser.Serialize(stream, bookmarks);
                 stream.Close();
             }
+
+            LoadBookmarks();
         }
 
         public static void ShowSelectionWindow()
@@ -128,9 +138,9 @@ namespace UltimateImageViewer
             {
                 SelectionWindow.enabled = true;
             }
-            else if (instance != null)
+            else if (Instance != null)
             {
-                SelectionWindow = instance.gameObject.AddComponent<SelectionWindow>();
+                SelectionWindow = Instance.gameObject.AddComponent<SelectionWindow>();
             }
         }
 
@@ -140,28 +150,39 @@ namespace UltimateImageViewer
             {
                 SelectionWindow.enabled = !SelectionWindow.enabled;
             }
-            else if (instance != null)
+            else if (Instance != null)
             {
-                SelectionWindow = instance.gameObject.AddComponent<SelectionWindow>();
+                SelectionWindow = Instance.gameObject.AddComponent<SelectionWindow>();
+            }
+        }
+
+        private static void Hide()
+        {
+            if (Instance != null)
+            {
+                Instance.gameObject.SetActive(false);
+            }
+        }
+
+        private static void Show()
+        {
+            if (Instance != null)
+            {
+                Instance.gameObject.SetActive(true);
             }
         }
 
         private void Awake()
         {
-            if (instance == null)
+            if (Instance == null)
             {
-                instance = this;
+                Instance = this;
                 DontDestroyOnLoad(this);
             }
             else
             {
                 Destroy(this);
             }
-        }
-
-        private void OnDisable()
-        {
-            SaveBookmarks();
         }
 
         private void OnEnable()

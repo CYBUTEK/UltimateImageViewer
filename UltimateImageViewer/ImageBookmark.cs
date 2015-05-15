@@ -26,6 +26,8 @@ namespace UltimateImageViewer
 
         public ImageBookmark(string url)
         {
+            url = url.Trim();
+
             if (File.Exists(url))
             {
                 url = "file://" + url;
